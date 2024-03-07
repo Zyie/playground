@@ -36,7 +36,7 @@ export function updatePlayground(data: IPlayground, cb: THttpCallback<IPlaygroun
 
 export function getReleases(cb: THttpCallback<string[]>)
 {
-    get(`https://api.github.com/repos/pixijs/pixi.js/tags`, (err, res) =>
+    get(`https://api.github.com/repos/pixijs/pixi.js/tags?per_page=100`, (err, res) =>
     {
         if (err)
             return cb(err);
@@ -45,9 +45,19 @@ export function getReleases(cb: THttpCallback<string[]>)
             return cb(new Error('Invalid response from server.'));
 
         const tags: string[] = [];
+        const preReleases: Record<string, number> = {};
 
         for (let i = 0; i < res.length; ++i)
         {
+            if(res[i].name.includes('-'))
+            {
+                const [version] = res[i].name.split('-');
+                if (preReleases[version] && preReleases[version] > 5)
+                {
+                    continue;
+                }
+                preReleases[version] = (preReleases[version] || 0) + 1;
+            }
             tags.push(res[i].name);
         }
 
@@ -63,8 +73,8 @@ export function getTypings(version: string, cb: (typings: string) => void)
         url = `/definitions/${version}/pixi.d.ts`;
     else if (version.indexOf('v5.0.') === 0 && parseInt(version.split('.')[2], 10) < 5)
         url = `/definitions/${version}/pixi.js.d.ts`;
-    else if (version === 'master')
-        url = `/definitions/master/pixi.js.d.ts`; // Temp, remove when we can use pixijs.download
+    else if (version === 'release')
+        url = `/definitions/release/pixi.js.d.ts`; // Temp, remove when we can use pixijs.download
     else
         url = `https://pixijs.download/${version}/types/pixi.js.d.ts`;
 

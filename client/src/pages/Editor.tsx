@@ -84,9 +84,9 @@ export class Editor extends Component<IProps, IState>
             saving: false,
             showSettings: false,
             dirty: true,
-            oldPixiVersion: 'master',
+            oldPixiVersion: 'release',
             data: {
-                pixiVersion: 'master',
+                pixiVersion: 'release',
                 isPublic: true,
                 autoUpdate: true,
             },
@@ -571,20 +571,20 @@ function getDefaultPlayground()
 */
 
 // Create our application instance
-var app = new PIXI.Application({
-    width: window.innerWidth,
-    height: window.innerHeight,
-    backgroundColor: 0x2c3e50
-});
-document.body.appendChild(app.view);
+(async () => {
+    const app = new PIXI.Application();
+    await app.init({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        backgroundColor: 0x2c3e50
+    })
+    document.body.appendChild(app.canvas);
 
-// Load the bunny texture
-app.loader.add('bunny', 'https://pixijs.io/examples/examples/assets/bunny.png')
-    .load(startup);
+    // Load the bunny texture
+    const texture = await PIXI.Assets.load('https://pixijs.io/examples/examples/assets/bunny.png')
 
-function startup()
-{
-    var bunny = new PIXI.Sprite(app.loader.resources.bunny.texture);
+    // Create a new Sprite using the texture
+    const bunny = new PIXI.Sprite(texture);
 
     // Center the sprite's anchor point
     bunny.anchor.set(0.5);
@@ -596,11 +596,11 @@ function startup()
     app.stage.addChild(bunny);
 
     // Listen for animate update
-    app.ticker.add(function(delta)
+    app.ticker.add(function(ticker)
     {
         // Rotate mr rabbit clockwise
-        bunny.rotation += 0.1 * delta;
+        bunny.rotation += 0.1 * ticker.deltaTime;
     });
-}
+})();
 `;
 }
